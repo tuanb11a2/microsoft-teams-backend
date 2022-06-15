@@ -1,0 +1,13 @@
+{
+    "name": "UserApi",
+    "alias": "userapi",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\UserApi\\Providers\\UserApiServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}
