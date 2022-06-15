@@ -5,20 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Post extends Model
+class Comment extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'user_id',
-        'channel_id',
+        'post_id',
         'content',
         'file_path'
     ];
 
-     /**
+    /**
      *
      * @return BelongsTo
      */
@@ -27,21 +26,12 @@ class Post extends Model
         return $this->belongsTo(User::class);
     }
 
-     /**
-     *
-     * @return HasMany
-     */
-    public function comments(): HasMany
-    {
-        return $this->hasMany(Comment::class);
-    }
-
-     /**
+    /**
      *
      * @return BelongsTo
      */
-    public function channel(): BelongsTo
+    public function post(): BelongsTo
     {
-        return $this->belongsTo(Channel::class);
+        return $this->belongsTo(Post::class);
     }
 }
