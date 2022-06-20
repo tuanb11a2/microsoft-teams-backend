@@ -1,0 +1,47 @@
+version: 0.2
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazone ECR...
+      - aws --version
+      - echo $AWS_DEFAULT_REGION
+      - docker login --username thanhnam2494 --password thanhnam@2494
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo $IMAGE_TAG
+      - echo Building the Docker image...
+      - cp .env.${BUILD_ENV} .env
+      - docker build -t ${API_REPOSITORY_URI}:latest -f deployment/aws/php/Dockerfile .
+      - docker build -t ${ARTISAN_REPOSITORY_URI}:latest -f deployment/aws/artisan/Dockerfile .
+      - docker build -t ${BATCH_REPOSITORY_URI}:latest -f deployment/aws/batch/Dockerfile .
+      - docker build -t ${NODEJS_REPOSITORY_URI}:latest -f deployment/aws/nodejs/Dockerfile .
+      - docker tag ${API_REPOSITORY_URI}:latest ${API_REPOSITORY_URI}:${IMAGE_TAG}
+      - docker tag ${ARTISAN_REPOSITORY_URI}:latest ${ARTISAN_REPOSITORY_URI}:${IMAGE_TAG}
+      - docker tag ${BATCH_REPOSITORY_URI}:latest ${BATCH_REPOSITORY_URI}:${IMAGE_TAG}
+      - docker tag ${NODEJS_REPOSITORY_URI}:latest ${NODEJS_REPOSITORY_URI}:${IMAGE_TAG}
+  post_build:
+    commands:
+      - aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - echo Build completed on `date`
+      - docker push ${API_REPOSITORY_URI}:latest
+      - docker push ${API_REPOSITORY_URI}:${IMAGE_TAG}
+      - docker push ${ARTISAN_REPOSITORY_URI}:latest
+      - docker push ${ARTISAN_REPOSITORY_URI}:${IMAGE_TAG}
+      - docker push ${BATCH_REPOSITORY_URI}:latest
+      - docker push ${BATCH_REPOSITORY_URI}:${IMAGE_TAG}
+      - docker push ${NODEJS_REPOSITORY_URI}:latest
+      - docker push ${NODEJS_REPOSITORY_URI}:${IMAGE_TAG}
+      - echo Run migration
+      - aws ecs run-task --cluster ${API_CLUSTER_NAME} --count 1 --launch-type FARGATE --network-configuration awsvpcConfiguration="{subnets=[${PROTECTED_SUBNET_ID}],securityGroups=[${ARTISAN_SG_ID}],assignPublicIp=ENABLED}" --task-definition ${ARTISAN_TASK_NAME}
+      - printf '[{"name":"php","imageUri":"%s"}]' ${API_REPOSITORY_URI}:${IMAGE_TAG} > imagedefinitions.json
+      - printf '[{"name":"batch","imageUri":"%s"}]' ${BATCH_REPOSITORY_URI}:${IMAGE_TAG} > imagebatchdefinitions.json
+      - printf '[{"name":"nodejs","imageUri":"%s"}]' ${NODEJS_REPOSITORY_URI}:${IMAGE_TAG} > imagenodejsdefinitions.json
+artifacts:
+  files:
+    - imagedefinitions.json
+    - imagebatchdefinitions.json
+    - imagenodejsdefinitions.json
