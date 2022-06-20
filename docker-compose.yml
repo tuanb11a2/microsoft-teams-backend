@@ -1,0 +1,77 @@
+version: "3.7"
+services:
+    php:
+        build:
+            context: ./
+            dockerfile: deployment/docker/Dockerfile
+            args:
+                XDEBUG: "true"
+        working_dir: /var/www/
+        volumes:
+            - .:/var/www/
+            - ./deployment/docker/php.ini:/usr/local/etc/php/conf.d/php.ini
+        links:
+            - mysql
+            - redis
+
+    php-batch:
+        build:
+            context: .
+            dockerfile: deployment/docker/Dockerfile.phpbatch
+        volumes:
+            - .:/var/www/
+        links:
+            - mysql
+            - redis
+    nginx:
+        build:
+            context: .
+            dockerfile: deployment/docker/Dockerfile.nginx
+            args:
+                PHP_FPM_SERVER: php
+                PHP_FPM_PORT: 9000
+        links:
+            - php
+        depends_on:
+            - php
+        ports:
+            - "${NGINX_PORT-8000}:80"
+        volumes:
+            - .:/var/www/
+
+    mysql:
+        image: mysql:latest
+        command: mysqld --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+        ports:
+            - "${DB_PORT-3306}:3306"
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+            MYSQL_USER: ${DB_USERNAME}
+            MYSQL_TCP_PORT: ${DB_PORT}
+        volumes:
+            - teams_db:/var/lib/mysql
+            - ./deployment/docker/mysql-database-test.sql:/docker-entrypoint-initdb.d/mysql-database-test.sql
+
+    node:
+        build:
+           context: ./
+           dockerfile: deployment/docker/Dockerfile.node
+        ports:
+           - "6001:6001"
+        volumes:
+           - .:/var/www/
+        links:
+           - redis
+           - php
+
+    redis:
+        image: redis
+        ports:
+            - "6379:6379"
+
+volumes:
+    teams_db:
+        driver: local
+
