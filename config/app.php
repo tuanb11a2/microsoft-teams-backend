@@ -15,6 +15,8 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    'client_url' => env('CLIENT_URL', 'http://localhost:3000'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment
@@ -80,7 +82,7 @@ return [
     |
     */
 
-    'locale' => 'en',
+    'locale' => 'vi',
 
     /*
     |--------------------------------------------------------------------------
@@ -93,10 +95,26 @@ return [
     |
     */
 
-    'fallback_locale' => 'en',
+    'fallback_locale' => 'vi',
 
-    /*
-    |--------------------------------------------------------------------------
+    /* $accountSid = env('TWILIO_ACCOUNT_SID');
+        $apiKeySid = env('TWILIO_API_KEY_SID');
+        $apiKeySecret = env('TWILIO_API_KEY_SECRET');
+        $identity = uniqid();
+        // Create an Access Token
+        $token = new AccessToken(
+            $accountSid,
+            $apiKeySid,
+            $apiKeySecret,
+            3600,
+            $identity
+        );
+        // Grant access to Video
+        $grant = new VideoGrant();
+        $grant->setRoom('cool room');
+        $token->addGrant($grant);
+        // Serialize the token as a JWT
+        echo $token->toJWT();--------------------------------------------------------
     | Faker Locale
     |--------------------------------------------------------------------------
     |
@@ -106,7 +124,7 @@ return [
     |
     */
 
-    'faker_locale' => 'en_US',
+    'faker_locale' => 'vi_VN',
 
     /*
     |--------------------------------------------------------------------------
@@ -161,6 +179,7 @@ return [
         Illuminate\Translation\TranslationServiceProvider::class,
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
+        Laravel\Socialite\SocialiteServiceProvider::class,
 
         /*
          * Package Service Providers...
@@ -171,9 +190,10 @@ return [
          */
         App\Providers\AppServiceProvider::class,
         App\Providers\AuthServiceProvider::class,
-        // App\Providers\BroadcastServiceProvider::class,
+        App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+        // App\Providers\TelescopeServiceProvider::class,
 
     ],
 
@@ -218,11 +238,12 @@ return [
         'Queue' => Illuminate\Support\Facades\Queue::class,
         'RateLimiter' => Illuminate\Support\Facades\RateLimiter::class,
         'Redirect' => Illuminate\Support\Facades\Redirect::class,
-        // 'Redis' => Illuminate\Support\Facades\Redis::class,
+        'Redis' => Illuminate\Support\Facades\Redis::class,
         'Request' => Illuminate\Support\Facades\Request::class,
         'Response' => Illuminate\Support\Facades\Response::class,
         'Route' => Illuminate\Support\Facades\Route::class,
         'Schema' => Illuminate\Support\Facades\Schema::class,
+        'Socialite' => Laravel\Socialite\Facades\Socialite::class,
         'Session' => Illuminate\Support\Facades\Session::class,
         'Storage' => Illuminate\Support\Facades\Storage::class,
         'Str' => Illuminate\Support\Str::class,
